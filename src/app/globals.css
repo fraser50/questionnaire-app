@@ -34,4 +34,17 @@ main {
   left: 50%;
   position: absolute;
   transform: translate(-50%, 0);
+  min-width: 25%;
+}
+
+.questionContainer {
+  background-color: lightgrey;
+  border: 1px;
+  margin-bottom: 20px;
+  border-color: black;
+  border-style: solid;
+}
+
+.questionContainer select {
+  width: 100%;
 }
