@@ -34,6 +34,16 @@ export function Question({itemData, updateEntry}) {
         });
     }
 
+    function renderQuestionType(type) {
+        switch (type) {
+            case "multiple":
+                return <QuestionMultiple itemData={itemData} updateEntry={updateEntry} />;
+
+            default:
+                return null;
+        }
+    }
+
     return (
         <div className="questionContainer">
             <p>Question Type:</p>
@@ -48,6 +58,8 @@ export function Question({itemData, updateEntry}) {
                 newItemData.required = e.target.checked;
                 updateEntry(itemData, newItemData);
             }} checked={itemData.required} />
+            {renderQuestionType(itemData.type)}
+            
         </div>
     );
 }
@@ -66,10 +78,48 @@ export function AddQuestion({questionList, setQuestionList}) {
 
 }
 
-export function QuestionMultiple({itemData}) {
+export function MultipleAddOption({itemData, updateEntry}) {
+    return (<><br /><button onClick={() => {
+        let newOptionsList = itemData.options == undefined ? [] :  [...itemData.options];
+        newOptionsList.push("");
+        let newItemData = Object.create(itemData);
+        newItemData.options = newOptionsList;
+        updateEntry(itemData, newItemData);
+
+    }}>Add Answer</button></>);
+}
+
+export function QuestionMultiple({itemData, updateEntry}) {
+    function removeOption(option) {
+        let newOptions = [...itemData.options];
+        newOptions.splice(newOptions.indexOf(option), 1);
+
+        let newItemData = Object.create(itemData);
+        newItemData.options = newOptions;
+
+        updateEntry(itemData, newItemData);
+    }
+
+
     return (
         <>
-            
+            {itemData.options == undefined ? "" : itemData.options.map((option, i) => {
+                return (
+                    <div className="optionDiv">
+                        <input type="text" key={i} placeholder="Enter an answer" value={option} style={{float: "left", flexGrow: 1}} onChange={(event) => {
+                            let newOptions = [...itemData.options];
+                            newOptions[i] = event.target.value;
+
+                            let newItemData = Object.create(itemData);
+                            newItemData.options = newOptions;
+
+                            updateEntry(itemData, newItemData);
+                        }} />
+                        <button style={{float: "right"}} onClick={() => removeOption(option)}>Remove</button>
+                    </div>
+                );
+            })}
+            <MultipleAddOption itemData={itemData} updateEntry={updateEntry} />
         </>
     );
 }

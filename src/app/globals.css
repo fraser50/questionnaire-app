@@ -48,3 +48,7 @@ main {
 .questionContainer select {
   width: 100%;
 }
+
+.optionDiv {
+  display: flex;
+}
