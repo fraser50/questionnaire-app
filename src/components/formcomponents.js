@@ -15,10 +15,17 @@ export function FormContainer() {
         setQuestionList(questionList.map(entry => entry == oldEntry ? newEntry : entry));
     }
 
+    function removeQuestion(itemData) {
+        let newQuestionList = [...questionList];
+        newQuestionList.splice(newQuestionList.indexOf(itemData), 1);
+
+        setQuestionList(newQuestionList);
+    }
+
     return (
         <div>
             {questionList.map((question, i) => {return (
-                <Question key={i} itemData={question} updateEntry={updateEntry} />)
+                <Question key={i} itemData={question} updateEntry={updateEntry} removeQuestion={removeQuestion} />)
         })}
 
         <AddQuestion questionList={questionList} setQuestionList={setQuestionList} />
@@ -26,11 +33,12 @@ export function FormContainer() {
     );
 }
 
-export function Question({itemData, updateEntry}) {
+export function Question({itemData, updateEntry, removeQuestion}) {
     function onSelectChange(event) {
         updateEntry(itemData, {
             type: event.target.value,
-            required: itemData.required
+            required: itemData.required,
+            question: itemData.question
         });
     }
 
@@ -57,8 +65,17 @@ export function Question({itemData, updateEntry}) {
                 let newItemData = Object.create(itemData);
                 newItemData.required = e.target.checked;
                 updateEntry(itemData, newItemData);
-            }} checked={itemData.required} />
+            }} checked={itemData.required} /><br />
+            <p>Question:</p>
+            <input type="text" placeholder="Enter the question" value={itemData.question} onChange={(event) => {
+                let newItemData = Object.create(itemData);
+                newItemData.question = event.target.value;
+
+                updateEntry(itemData, newItemData);
+            }} /><span style={{height: "1em", width: "100%", display: "block"}} />
             {renderQuestionType(itemData.type)}
+            <span style={{height: "2em", width: "100%", display: "block"}} />
+            <button onClick={() => removeQuestion(itemData)}>Delete Question</button>
             
         </div>
     );
@@ -69,7 +86,8 @@ export function AddQuestion({questionList, setQuestionList}) {
         let newQuestionList = [...questionList];
         newQuestionList.push({
             type: "single",
-            required: false
+            required: false,
+            question: ""
         });
         setQuestionList(newQuestionList);
     }
