@@ -10,6 +10,7 @@ const itemTypes = [
 
 export function FormContainer() {
     const [questionList, setQuestionList] = useState([]);
+    const [formDisabled, setFormDisabled] = useState(false);
 
     function updateEntry(oldEntry, newEntry) {
         setQuestionList(questionList.map(entry => entry == oldEntry ? newEntry : entry));
@@ -22,30 +23,52 @@ export function FormContainer() {
         setQuestionList(newQuestionList);
     }
 
+    async function submitForm() {
+        let jsonString = JSON.stringify(questionList);
+
+        let rsp = await fetch("/api/createform", {method: "POST", body: jsonString});
+        
+        let jsonObj = await rsp.json();
+
+        if (jsonObj.status == "success") {
+            alert(JSON.stringify(jsonObj));
+
+        } else {
+            alert("Failure\n" + JSON.stringify(jsonObj));
+        }
+    }
+
     return (
         <div>
             {questionList.map((question, i) => {return (
-                <Question key={i} itemData={question} updateEntry={updateEntry} removeQuestion={removeQuestion} />)
+                <Question key={i} itemData={question} updateEntry={updateEntry} removeQuestion={removeQuestion} formDisabled={formDisabled} />)
         })}
 
-        <AddQuestion questionList={questionList} setQuestionList={setQuestionList} />
+        <AddQuestion questionList={questionList} setQuestionList={setQuestionList} formDisabled={formDisabled} />
+        <span style={{height: "2em", width: "100%", display: "block"}} />
+        <button disabled={formDisabled} onClick={() => {
+            setFormDisabled(true);
+            submitForm();
+        }}>Submit Questionnaire</button><br />
+        <button onClick={() => {
+            setFormDisabled(false);
+        }}>Enable</button>
         </div>
     );
 }
 
-export function Question({itemData, updateEntry, removeQuestion}) {
+export function Question({itemData, updateEntry, removeQuestion, formDisabled}) {
     function onSelectChange(event) {
-        updateEntry(itemData, {
-            type: event.target.value,
-            required: itemData.required,
-            question: itemData.question
-        });
+        let newItemData = Object.assign({}, itemData);
+        newItemData.type = event.target.value;
+
+        updateEntry(itemData, newItemData);
     }
 
     function renderQuestionType(type) {
         switch (type) {
             case "multiple":
-                return <QuestionMultiple itemData={itemData} updateEntry={updateEntry} />;
+                return <QuestionMultiple itemData={itemData} updateEntry={updateEntry} formDisabled={formDisabled} />;
 
             default:
                 return null;
@@ -56,32 +79,32 @@ export function Question({itemData, updateEntry, removeQuestion}) {
         <div className="questionContainer">
             <p>Question Type:</p>
             <p>Type ID: {itemData.type}</p>
-            <select onChange={onSelectChange}>
+            <select onChange={onSelectChange} disabled={formDisabled}>
                 {itemTypes.map(item => {
                     return <option value={item.id} selected={item.id == itemData.type}>{item.name}</option>
                 })}
             </select>
             <label>Required: </label><input type="checkbox" onChange={(e) => {
-                let newItemData = Object.create(itemData);
+                let newItemData = Object.assign({}, itemData);
                 newItemData.required = e.target.checked;
                 updateEntry(itemData, newItemData);
-            }} checked={itemData.required} /><br />
+            }} checked={itemData.required} disabled={formDisabled} /><br />
             <p>Question:</p>
-            <input type="text" placeholder="Enter the question" value={itemData.question} onChange={(event) => {
-                let newItemData = Object.create(itemData);
+            <input type="text" placeholder="Enter the question" value={itemData.question} disabled={formDisabled} onChange={(event) => {
+                let newItemData = Object.assign({}, itemData);
                 newItemData.question = event.target.value;
 
                 updateEntry(itemData, newItemData);
             }} /><span style={{height: "1em", width: "100%", display: "block"}} />
             {renderQuestionType(itemData.type)}
             <span style={{height: "2em", width: "100%", display: "block"}} />
-            <button onClick={() => removeQuestion(itemData)}>Delete Question</button>
+            <button disabled={formDisabled} onClick={() => removeQuestion(itemData) }>Delete Question</button>
             
         </div>
     );
 }
 
-export function AddQuestion({questionList, setQuestionList}) {
+export function AddQuestion({questionList, setQuestionList, formDisabled}) {
     function onClick() {   
         let newQuestionList = [...questionList];
         newQuestionList.push({
@@ -92,27 +115,27 @@ export function AddQuestion({questionList, setQuestionList}) {
         setQuestionList(newQuestionList);
     }
 
-    return <button onClick={onClick}>Add Question</button>;
+    return <button onClick={onClick} disabled={formDisabled}>Add Question</button>;
 
 }
 
-export function MultipleAddOption({itemData, updateEntry}) {
-    return (<><br /><button onClick={() => {
+export function MultipleAddOption({itemData, updateEntry, formDisabled}) {
+    return (<><br /><button disabled={formDisabled} onClick={() => {
         let newOptionsList = itemData.options == undefined ? [] :  [...itemData.options];
         newOptionsList.push("");
-        let newItemData = Object.create(itemData);
+        let newItemData = Object.assign({}, itemData);
         newItemData.options = newOptionsList;
         updateEntry(itemData, newItemData);
 
     }}>Add Answer</button></>);
 }
 
-export function QuestionMultiple({itemData, updateEntry}) {
+export function QuestionMultiple({itemData, updateEntry, formDisabled}) {
     function removeOption(option) {
         let newOptions = [...itemData.options];
         newOptions.splice(newOptions.indexOf(option), 1);
 
-        let newItemData = Object.create(itemData);
+        let newItemData = Object.assign({}, itemData);
         newItemData.options = newOptions;
 
         updateEntry(itemData, newItemData);
@@ -124,20 +147,20 @@ export function QuestionMultiple({itemData, updateEntry}) {
             {itemData.options == undefined ? "" : itemData.options.map((option, i) => {
                 return (
                     <div className="optionDiv">
-                        <input type="text" key={i} placeholder="Enter an answer" value={option} style={{float: "left", flexGrow: 1}} onChange={(event) => {
+                        <input type="text" key={i} placeholder="Enter an answer" value={option} disabled={formDisabled} style={{float: "left", flexGrow: 1}} onChange={(event) => {
                             let newOptions = [...itemData.options];
                             newOptions[i] = event.target.value;
 
-                            let newItemData = Object.create(itemData);
+                            let newItemData = Object.assign({}, itemData);
                             newItemData.options = newOptions;
 
                             updateEntry(itemData, newItemData);
                         }} />
-                        <button style={{float: "right"}} onClick={() => removeOption(option)}>Remove</button>
+                        <button style={{float: "right"}} disabled={formDisabled} onClick={() => removeOption(option)}>Remove</button>
                     </div>
                 );
             })}
-            <MultipleAddOption itemData={itemData} updateEntry={updateEntry} />
+            <MultipleAddOption itemData={itemData} updateEntry={updateEntry} formDisabled={formDisabled} />
         </>
     );
 }
