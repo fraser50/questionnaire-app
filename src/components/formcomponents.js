@@ -4,7 +4,6 @@ import { useState } from "react";
 
 const itemTypes = [
     {id: "single", name: "Text entry"},
-    {id: "radio", name: "Choose one"},
     {id: "multiple", name: "Multiple choice"},
 ];
 
@@ -61,6 +60,10 @@ export function Question({itemData, updateEntry, removeQuestion, formDisabled}) 
     function onSelectChange(event) {
         let newItemData = Object.assign({}, itemData);
         newItemData.type = event.target.value;
+        if (newItemData.type != "multiple") {
+            delete newItemData.options;
+            delete newItemData.multipleAllowed;
+        }
 
         updateEntry(itemData, newItemData);
     }
@@ -144,6 +147,12 @@ export function QuestionMultiple({itemData, updateEntry, formDisabled}) {
 
     return (
         <>
+            <label>Multiple selections: </label><input type="checkbox" checked={itemData.multipleAllowed == undefined ? false : itemData.multipleAllowed} onChange={(event) => {
+                let newItemData = Object.assign({}, itemData);
+                newItemData.multipleAllowed = event.target.checked;
+
+                updateEntry(itemData, newItemData);
+            }} />
             {itemData.options == undefined ? "" : itemData.options.map((option, i) => {
                 return (
                     <div className="optionDiv">
