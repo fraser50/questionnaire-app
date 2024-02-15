@@ -10,7 +10,6 @@ export function AnswerableQuestionHeader({questionNumber, required}) {
 
 export function AnswerableSimpleQuestion({itemData, updateState}) {
     return <div>
-        <p>Answer</p><br />
         <input type="text" placeholder="Enter an answer" value={itemData.providedAnswer != undefined ? itemData.providedAnswer : ""} onChange={(event) => {
             let newItemData = Object.assign({}, itemData);
             newItemData.providedAnswer = event.target.value;
@@ -81,7 +80,8 @@ export function AnswerableQuestion({itemData, questionNumber, updateState}) {
 
     return (<div>
         <AnswerableQuestionHeader questionNumber={questionNumber} required={itemData.required} />
-        {questionBody}
+        <p>{itemData.question}</p>
+        {questionBody}<br />
     </div>);
 }
 
