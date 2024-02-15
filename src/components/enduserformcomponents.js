@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function AnswerableQuestionHeader({questionNumber, required}) {
     return <div className="answerHeader">
@@ -87,10 +87,22 @@ export function AnswerableQuestion({itemData, questionNumber, updateState}) {
 
 export function AnswerableQuestionHolder() {
     // TODO: Fetch questionnaire from server
-    let [answerableQuestionList, setAnswerableQuestionList] = useState([
-        {type: "single", question: "A simple question", required: false},
-        {type: "multiple", question: "Select one", required: true, options: ["A", "B", "C", "D"], multipleAllowed: true}
-    ]);
+    let [answerableQuestionList, setAnswerableQuestionList] = useState([]);
+
+    useEffect(() => {
+        let pathName = document.location.pathname;
+        let pathNameSplit = pathName.split("/");
+        
+        let formID = pathNameSplit[pathNameSplit.length - 1];
+        
+        fetch("/api/readform/" + formID).then(async rsp => {
+            if (rsp.ok) {
+                let jObj = await rsp.json();
+
+                setAnswerableQuestionList(jObj.form);
+            }
+        });
+    }, []);
 
     function updateState(oldEntry, newEntry) {
         setAnswerableQuestionList(answerableQuestionList.map(entry => entry == oldEntry ? newEntry : entry));
