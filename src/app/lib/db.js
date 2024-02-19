@@ -9,6 +9,7 @@ export function getDB() {
         // Initialise tables
 
         db.run("CREATE TABLE IF NOT EXISTS forms (id INTEGER PRIMARY KEY, formData TEXT)");
+        db.run("CREATE TABLE IF NOT EXISTS answers (id INTEGER PRIMARY KEY, answerData TEXT, formID INTEGER REFERENCES forms(id))")
     }
     
     return db;
